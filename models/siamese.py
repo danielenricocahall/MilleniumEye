@@ -1,6 +1,7 @@
 from keras import Input, Sequential, Model
 from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda
 from keras.regularizers import l2
+import keras.backend as K
 
 
 def get_siamese_model(input_shape, initialize_weights='glorot_uniform', initialize_bias='zeros'):
