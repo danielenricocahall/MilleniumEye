@@ -1,11 +1,11 @@
 from keras import Input, Sequential, Model
-from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda, Concatenate, Subtract, GlobalAveragePooling2D, \
+from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda, GlobalAveragePooling2D, \
     Activation
 from keras.regularizers import l2
 import keras.backend as K
 
 
-def get_siamese_model(input_shape, initialize_weights='glorot_uniform', initialize_bias='zeros'):
+def get_siamese_model(input_shape):
     """
         Model architecture
     """
@@ -14,17 +14,13 @@ def get_siamese_model(input_shape, initialize_weights='glorot_uniform', initiali
     right_input = Input(input_shape)
     # build convnet to use in each siamese 'leg'
     convnet = Sequential()
-    convnet.add(Conv2D(16, (10, 10), activation='relu', input_shape=input_shape,
-                       kernel_initializer=initialize_weights))
+    convnet.add(Conv2D(32, (10, 10), activation='relu', input_shape=input_shape))
     convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(32, (7, 7), activation='relu',
-                       kernel_regularizer=l2(2e-4), kernel_initializer=initialize_weights, bias_initializer=initialize_bias))
+    convnet.add(Conv2D(64, (7, 7), activation='relu'))
     convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(32, (4, 4), activation='relu', kernel_initializer=initialize_weights,
-                       bias_initializer=initialize_bias))
+    convnet.add(Conv2D(64, (4, 4), activation='relu'))
     convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(64, (4, 4), activation='relu', kernel_initializer=initialize_weights,
-                       bias_initializer=initialize_bias))
+    convnet.add(Conv2D(128, (4, 4), activation='relu'))
     convnet.add(GlobalAveragePooling2D())
     convnet.add(Activation('sigmoid'))
     # encode each of the two inputs into a vector with the convnet
@@ -32,7 +28,7 @@ def get_siamese_model(input_shape, initialize_weights='glorot_uniform', initiali
     encoded_r = convnet(right_input)
     # merge two encoded inputs with the l1 distance between them
     both = Lambda(lambda x: K.abs(x[0] - x[1]))([encoded_l, encoded_r])
-    prediction = Dense(1, activation='sigmoid', bias_initializer=initialize_bias)(both)
+    prediction = Dense(1, activation='sigmoid')(both)
     siamese_net = Model(input=[left_input, right_input], output=prediction)
 
     # return the model
