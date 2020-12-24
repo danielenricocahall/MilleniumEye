@@ -1,5 +1,6 @@
 from keras import Input, Sequential, Model
-from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda
+from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda, Concatenate, Subtract, GlobalAveragePooling2D, \
+    Activation
 from keras.regularizers import l2
 import keras.backend as K
 
@@ -9,42 +10,30 @@ def get_siamese_model(input_shape, initialize_weights='glorot_uniform', initiali
         Model architecture
     """
 
-    # Define the tensors for the two input images
     left_input = Input(input_shape)
     right_input = Input(input_shape)
-
-    # Convolutional Neural Network
-    model = Sequential()
-    model.add(Conv2D(64, (10, 10), activation='relu', input_shape=input_shape,
-                     kernel_initializer=initialize_weights, kernel_regularizer=l2(2e-4)))
-    model.add(MaxPooling2D())
-    model.add(Conv2D(128, (7, 7), activation='relu',
-                     kernel_initializer=initialize_weights,
-                     bias_initializer=initialize_bias, kernel_regularizer=l2(2e-4)))
-    model.add(MaxPooling2D())
-    model.add(Conv2D(128, (4, 4), activation='relu', kernel_initializer=initialize_weights,
-                     bias_initializer=initialize_bias, kernel_regularizer=l2(2e-4)))
-    model.add(MaxPooling2D())
-    model.add(Conv2D(256, (4, 4), activation='relu', kernel_initializer=initialize_weights,
-                     bias_initializer=initialize_bias, kernel_regularizer=l2(2e-4)))
-    model.add(Flatten())
-    model.add(Dense(4096, activation='sigmoid',
-                    kernel_regularizer=l2(1e-3),
-                    kernel_initializer=initialize_weights, bias_initializer=initialize_bias))
-
-    # Generate the encodings (feature vectors) for the two images
-    encoded_l = model(left_input)
-    encoded_r = model(right_input)
-
-    # Add a customized layer to compute the absolute difference between the encodings
-    l1_layer = Lambda(lambda tensors: K.abs(tensors[0] - tensors[1]))
-    l1_distance = l1_layer([encoded_l, encoded_r])
-
-    # Add a dense layer with a sigmoid unit to generate the similarity score
-    prediction = Dense(1, activation='sigmoid', bias_initializer=initialize_bias)(l1_distance)
-
-    # Connect the inputs with the outputs
-    siamese_net = Model(inputs=[left_input, right_input], outputs=prediction)
+    # build convnet to use in each siamese 'leg'
+    convnet = Sequential()
+    convnet.add(Conv2D(16, (10, 10), activation='relu', input_shape=input_shape,
+                       kernel_initializer=initialize_weights))
+    convnet.add(MaxPooling2D())
+    convnet.add(Conv2D(32, (7, 7), activation='relu',
+                       kernel_regularizer=l2(2e-4), kernel_initializer=initialize_weights, bias_initializer=initialize_bias))
+    convnet.add(MaxPooling2D())
+    convnet.add(Conv2D(32, (4, 4), activation='relu', kernel_initializer=initialize_weights,
+                       bias_initializer=initialize_bias))
+    convnet.add(MaxPooling2D())
+    convnet.add(Conv2D(64, (4, 4), activation='relu', kernel_initializer=initialize_weights,
+                       bias_initializer=initialize_bias))
+    convnet.add(GlobalAveragePooling2D())
+    convnet.add(Activation('sigmoid'))
+    # encode each of the two inputs into a vector with the convnet
+    encoded_l = convnet(left_input)
+    encoded_r = convnet(right_input)
+    # merge two encoded inputs with the l1 distance between them
+    both = Lambda(lambda x: K.abs(x[0] - x[1]))([encoded_l, encoded_r])
+    prediction = Dense(1, activation='sigmoid', bias_initializer=initialize_bias)(both)
+    siamese_net = Model(input=[left_input, right_input], output=prediction)
 
     # return the model
     return siamese_net
