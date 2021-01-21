@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 from models.siamese import get_siamese_model
 from train import get_batch
 
+
 if __name__ == "__main__":
     shape = (614, 421, 3)
     model = get_siamese_model(shape)
-    model.load_weights('saved_models/saved-model-09.h5')
+    model.load_weights('saved_models/saved-model-19.h5')
     files = os.listdir('./cards/')
     for i, image in enumerate(get_batch(os.listdir('./cards/'), 1, shape)):
         max_score = 0

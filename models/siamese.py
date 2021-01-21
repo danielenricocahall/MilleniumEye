@@ -21,6 +21,7 @@ def get_siamese_model(input_shape):
     convnet.add(Conv2D(64, (4, 4), activation='relu'))
     convnet.add(MaxPooling2D())
     convnet.add(Conv2D(128, (4, 4), activation='relu'))
+    convnet.add(MaxPooling2D())
     convnet.add(GlobalAveragePooling2D())
     convnet.add(Activation('sigmoid'))
     # encode each of the two inputs into a vector with the convnet

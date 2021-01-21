@@ -7,7 +7,6 @@ from keras.optimizers import Adam
 
 from models.siamese import get_siamese_model
 import cv2
-import numpy.random as rng
 
 
 def get_batch(files: list, batch_size: int, shape: tuple):
