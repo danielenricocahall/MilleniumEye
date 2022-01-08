@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,13 +17,15 @@ if __name__ == "__main__":
         max_score = 0
         test_image = image[0]
         best_match = None
+        start = datetime.now()
         for j, image2 in enumerate(get_batch(os.listdir('./cards/'), 1, shape)):
             score = model.predict([image, image2])
             if max_score < score:
                 best_match = image2
                 max_score = score
-            if j > i + 1:
+            if j > i + 10:
                 break
+        print(datetime.now() - start)
         print(max_score)
         fig = plt.figure()
         plt.subplot(1, 2, 1)

@@ -2,8 +2,8 @@ import os
 import random
 
 import numpy as np
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 
 from models.siamese import get_siamese_model
 import cv2

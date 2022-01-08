@@ -15,7 +15,7 @@ def get_all_yugioh_cards():
         os.mkdir('./cards')
     try:
         _LOGGER.info("Started loading cards! This may take a few minutes...")
-        response = requests.get('https://db.ygoprodeck.com/api/v7/cardinfo.php')
+        response = requests.get(Config.YUGIOH_DATA_URL)
         response.raise_for_status()
         cards = response.json()['data']
         with ThreadPoolExecutor(Config.NUM_THREADS) as executor:

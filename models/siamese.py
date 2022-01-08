@@ -1,8 +1,8 @@
-from keras import Input, Sequential, Model
-from keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda, GlobalAveragePooling2D, \
+from tensorflow.keras import Input, Sequential, Model
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, Flatten, Dense, Lambda, GlobalAveragePooling2D, \
     Activation
-from keras.regularizers import l2
-import keras.backend as K
+from tensorflow.keras.regularizers import l2
+import tensorflow.keras.backend as K
 
 
 def get_siamese_model(input_shape):
@@ -30,7 +30,7 @@ def get_siamese_model(input_shape):
     # merge two encoded inputs with the l1 distance between them
     both = Lambda(lambda x: K.abs(x[0] - x[1]))([encoded_l, encoded_r])
     prediction = Dense(1, activation='sigmoid')(both)
-    siamese_net = Model(input=[left_input, right_input], output=prediction)
+    siamese_net = Model(inputs=[left_input, right_input], outputs=prediction)
 
     # return the model
     return siamese_net
